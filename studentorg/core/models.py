@@ -25,7 +25,7 @@ class Student(models.Model):
     student_id = models.CharField(max_length=10, unique=True)
     lastname = models.CharField(max_length=50)
     firstname = models.CharField(max_length=50)
-    middlename = models.CharField(maxlength=50)
+    middlename = models.CharField(max_length=50)  # Fixed typo in max_length
     program = models.ForeignKey(Program, on_delete=models.CASCADE)
 
     def __str__(self):

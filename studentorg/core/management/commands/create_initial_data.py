@@ -25,32 +25,29 @@ class Command(BaseCommand):
         colleges = []
         for name, code in colleges_data:
             college = College.objects.create(
-                name=name,
-                code=code,
-                description=fake.paragraph()
+                name=name
             )
             colleges.append(college)
             self.stdout.write(f'Created college: {name}')
 
         # Create 10 Programs
         programs_data = [
-            ('Bachelor of Science in Computer Science', 'BSCS', 0),
-            ('Bachelor of Science in Information Technology', 'BSIT', 0),
-            ('Bachelor of Science in Business Administration', 'BSBA', 1),
-            ('Bachelor of Arts in Psychology', 'AB-Psych', 2),
-            ('Bachelor of Science in Education', 'BSEd', 3),
-            ('Bachelor of Science in Civil Engineering', 'BSCE', 4),
-            ('Bachelor of Science in Architecture', 'BSArch', 5),
-            ('Bachelor of Science in Nursing', 'BSN', 6),
-            ('Doctor of Medicine', 'MD', 7),
-            ('Bachelor of Science in Accountancy', 'BSA', 1)
+            ('Bachelor of Science in Computer Science', 0),
+            ('Bachelor of Science in Information Technology', 0),
+            ('Bachelor of Science in Business Administration', 1),
+            ('Bachelor of Arts in Psychology', 2),
+            ('Bachelor of Science in Education', 3),
+            ('Bachelor of Science in Civil Engineering', 4),
+            ('Bachelor of Science in Architecture', 5),
+            ('Bachelor of Science in Nursing', 6),
+            ('Doctor of Medicine', 7),
+            ('Bachelor of Science in Accountancy', 1)
         ]
 
         programs = []
-        for name, code, college_index in programs_data:
+        for name, college_index in programs_data:
             program = Program.objects.create(
                 name=name,
-                code=code,
                 college=colleges[college_index]
             )
             programs.append(program)
@@ -89,9 +86,7 @@ class Command(BaseCommand):
         for i, student in enumerate(students):
             OrgMember.objects.create(
                 student=student,
-                organization=orgs[i],
-                position=random.choice(positions),
-                date_joined=fake.date_between(start_date='-2y', end_date='today')
+                organization=orgs[i]
             )
             self.stdout.write(f'Created org membership for: {student}')
 
