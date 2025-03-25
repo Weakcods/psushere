@@ -3,14 +3,14 @@ from .models import College, Program, Organization, Student, OrgMember
 
 @admin.register(College)
 class CollegeAdmin(admin.ModelAdmin):
-    list_display = ('name', 'code')
-    search_fields = ('name', 'code')
+    list_display = ('name',)
+    search_fields = ('name',)
 
 @admin.register(Program)
 class ProgramAdmin(admin.ModelAdmin):
-    list_display = ('name', 'code', 'college')
+    list_display = ('name', 'college')
     list_filter = ('college',)
-    search_fields = ('name', 'code')
+    search_fields = ('name',)
 
 @admin.register(Organization)
 class OrganizationAdmin(admin.ModelAdmin):
@@ -26,6 +26,6 @@ class StudentAdmin(admin.ModelAdmin):
 
 @admin.register(OrgMember)
 class OrgMemberAdmin(admin.ModelAdmin):
-    list_display = ('student', 'organization', 'position')
-    list_filter = ('organization', 'position')
-    search_fields = ('student__user__username', 'position')
+    list_display = ('student', 'organization')
+    list_filter = ('organization',)
+    search_fields = ('student__lastname', 'student__firstname')
