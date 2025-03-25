@@ -1,5 +1,5 @@
 from django.core.management.base import BaseCommand
-from studentorg.core.models import College, Program, Organization, Student, OrgMember
+from core.models import College, Program, Organization, Student, OrgMember
 from faker import Faker
 from datetime import date
 import random
