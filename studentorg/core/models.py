@@ -14,9 +14,9 @@ class Program(models.Model):
         return self.name
 
 class Organization(models.Model):
-    name = models.CharField(max_length=100)
-    college = models.ForeignKey(College, on_delete=models.CASCADE)
+    name = models.CharField(max_length=200)
     description = models.TextField()
+    college = models.ForeignKey(College, on_delete=models.CASCADE)  # Add this line
 
     def __str__(self):
         return self.name

@@ -14,9 +14,8 @@ class ProgramAdmin(admin.ModelAdmin):
 
 @admin.register(Organization)
 class OrganizationAdmin(admin.ModelAdmin):
-    list_display = ('name', 'college')
-    list_filter = ('college',)
-    search_fields = ('name',)
+    list_display = ['name', 'college']
+    list_filter = ['college']
 
 @admin.register(Student)
 class StudentAdmin(admin.ModelAdmin):

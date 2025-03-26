@@ -1,19 +1,23 @@
+{% extends 'base.html' %}
 
-{% extends 'base.html' %} {% load static %} {% block content %} 
-<div class="content">
-    <div class="container-fluid">
-        <h4 class="page-title">Home</h4>
-    <div class="row">
-        <div class="col-md-12">
-            <div class="card">
-                <div class="card-header">
-                    <div class="card-title">Page Title</div>
-                        <div class="card-category">Page Subtitle</div>
-                     </div>
-                        <div class="card-body">Hello, World</div>
+{% block title %}Home{% endblock %}
+
+{% block content %}
+    <div class="container">
+        <h1>Organizations</h1>
+        {% if home %}
+            {% for org in home %}
+                <div class="card mb-3">
+                    <div class="card-body">
+                        <h5 class="card-title">{{ org.name }}</h5>
+                        <p class="card-text">{{ org.description }}</p>
+                        <p class="card-text"><small class="text-muted">College: {{ org.college }}</small></p>
                     </div>
                 </div>
-            </div>
+            {% endfor %}
+            {% include 'pagination.html' %}
+        {% else %}
+            <p>No organizations found.</p>
+        {% endif %}
     </div>
-</div>
 {% endblock %}
