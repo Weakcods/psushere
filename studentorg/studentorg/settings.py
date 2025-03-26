@@ -38,6 +38,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'core',  # Changed from 'studentorg.core' to 'core'
+    'widget_tweaks',  
 ]
 
 MIDDLEWARE = [
