@@ -7,4 +7,4 @@ pillow==11.1.0
 python-dotenv==1.0.1
 sqlparse==0.5.3
 tzdata==2025.2
-Faker==22.6.0
+Faker==24.4.0
