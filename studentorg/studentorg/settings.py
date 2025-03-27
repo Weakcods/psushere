@@ -124,7 +124,6 @@ STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'static'),
 ]
 
-# Add this to help Django find static files during development
 if DEBUG:
     STATICFILES_DIRS = [
         os.path.join(BASE_DIR, 'static'),
