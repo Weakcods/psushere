@@ -39,7 +39,8 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'core',
-    'widget_tweaks',  # Add this line
+    'django.forms',  # Add this line
+    'widget_tweaks',  # This should be 'widget_tweaks', not 'widget-tweaks'
 ]
 
 MIDDLEWARE = [
