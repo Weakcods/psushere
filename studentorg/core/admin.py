@@ -1,24 +1,30 @@
 from django.contrib import admin
-from .models import College,Organization, Program, Student, Orgmembers
+from .models import College, Program, Organization, Student, OrgMember
 
-admin.site.register(College)
-admin.site.register(Program)
-admin.site.register(Organization)
+@admin.register(College)
+class CollegeAdmin(admin.ModelAdmin):
+    list_display = ('name',)
+    search_fields = ('name',)
+
+@admin.register(Program)
+class ProgramAdmin(admin.ModelAdmin):
+    list_display = ('name', 'college')
+    list_filter = ('college',)
+    search_fields = ('name',)
+
+@admin.register(Organization)
+class OrganizationAdmin(admin.ModelAdmin):
+    list_display = ['name', 'college']
+    list_filter = ['college']
 
 @admin.register(Student)
 class StudentAdmin(admin.ModelAdmin):
-    list_display = ('student_id', 'first_name', 'last_name', 'middle_name', 'program')
+    list_display = ('student_id', 'lastname', 'firstname', 'program')
     list_filter = ('program',)
-    search_fields = ('student_id', 'first_name', 'last_name')
+    search_fields = ('student_id', 'lastname', 'firstname')
 
-@admin.register(Orgmembers)
-class OrgmembersAdmin(admin.ModelAdmin):
-    list_display = ('student', 'organization', 'date_joined')
-    search_fields = ('student__first_name', 'student__last_name', 'organization__name')
-
-    def get_member_name(self, obj):
-        try:
-            member = Student.objects.get(id=obj.student_id)
-            return member.program
-        except Student.DoesNotExist:
-            return None
+@admin.register(OrgMember)
+class OrgMemberAdmin(admin.ModelAdmin):
+    list_display = ('student', 'organization')
+    list_filter = ('organization',)
+    search_fields = ('student__lastname', 'student__firstname')
