@@ -1,7 +1,7 @@
 from django.core.management.base import BaseCommand
 from django.utils import timezone
 from faker import Faker
-from olpos.models import College, Program, Student, Organization, Orgmembers
+from projectsite.models import College, Program, Student, Organization, Orgmembers
 import random
 
 class Command(BaseCommand):
