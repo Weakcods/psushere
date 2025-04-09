@@ -1,1 +1,19 @@
 /mad 
+# Django
+*.pyc
+__pycache__/
+*.pyo
+*.pyd
+db.sqlite3
+.Python
+media/
+
+# Environment
+.env
+venv/
+ENV/
+
+# IDE
+.vscode/
+*.swp
+*.swo
