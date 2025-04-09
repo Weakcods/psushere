@@ -26,7 +26,7 @@ SECRET_KEY = 'django-insecure-un%e0x7%_01$heigc#c13*k0vmkks+4^(m52i1^u&$o=y&^@&f
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
 
-ALLOWED_HOSTS = ['joshettt.pythonanywhere.com', '127.0.0.1']
+ALLOWED_HOSTS = ['joshettt.pythonanywhere.com','joshuawa.pythonanywhere.com', '127.0.0.1']
 
 
 # Application definition
@@ -44,6 +44,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',  
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -133,7 +134,7 @@ STATICFILES_FINDERS = [
 # For production/PythonAnywhere
 if not DEBUG:
     MIDDLEWARE.insert(1, 'whitenoise.middleware.WhiteNoiseMiddleware')
-    STATICFILES_STORAGE = 'whitenoise.storage.CompressedStaticFilesStorage'
+    STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 LOGIN_REDIRECT_URL = 'home'
 LOGIN_URL = 'login'
