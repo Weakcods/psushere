@@ -24,9 +24,9 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-un%e0x7%_01$heigc#c13*k0vmkks+4^(m52i1^u&$o=y&^@&f'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = True  # Temporarily set to True for local development
 
-ALLOWED_HOSTS = ['joshettt.pythonanywhere.com','joshuawa.pythonanywhere.com', '127.0.0.1']
+ALLOWED_HOSTS = ['joshettt.pythonanywhere.com', 'joshuawa.pythonanywhere.com', '127.0.0.1', 'localhost']
 
 
 # Application definition
@@ -134,12 +134,11 @@ STATICFILES_FINDERS = [
 # For production/PythonAnywhere
 if not DEBUG:
     MIDDLEWARE.insert(1, 'whitenoise.middleware.WhiteNoiseMiddleware')
-    STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+    STATICFILES_STORAGE = 'whitenoise.storage.CompressedStaticFilesStorage'
 
+# Authentication settings
 LOGIN_REDIRECT_URL = 'home'
 LOGIN_URL = 'login'
 
 # Default primary key field type
-# https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
-
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
