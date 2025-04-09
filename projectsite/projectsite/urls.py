@@ -27,9 +27,33 @@ urlpatterns = [
     path('login/', auth_views.LoginView.as_view(template_name='login.html'), name='login'),
     path('logout/', auth_views.LogoutView.as_view(next_page='home'), name='logout'),
     
+    # Student URLs
     path('students/', views.StudentListView.as_view(), name='student-list'),
+    path('students/add/', views.StudentCreateView.as_view(), name='student-add'),
+    path('students/<int:pk>/', views.StudentUpdateView.as_view(), name='student-edit'),
+    path('students/<int:pk>/delete/', views.StudentDeleteView.as_view(), name='student-delete'),
+    
+    # Program URLs
     path('programs/', views.ProgramListView.as_view(), name='program-list'),
+    path('programs/add/', views.ProgramCreateView.as_view(), name='program-add'),
+    path('programs/<int:pk>/', views.ProgramUpdateView.as_view(), name='program-edit'),
+    path('programs/<int:pk>/delete/', views.ProgramDeleteView.as_view(), name='program-delete'),
+    
+    # College URLs
     path('colleges/', views.CollegeListView.as_view(), name='college-list'),
+    path('colleges/add/', views.CollegeCreateView.as_view(), name='college-add'),
+    path('colleges/<int:pk>/', views.CollegeUpdateView.as_view(), name='college-edit'),
+    path('colleges/<int:pk>/delete/', views.CollegeDeleteView.as_view(), name='college-delete'),
+    
+    # Organization URLs
     path('organizations/', views.OrganizationListView.as_view(), name='organization-list'),
+    path('organizations/add/', views.OrganizationCreateView.as_view(), name='organization-add'),
+    path('organizations/<int:pk>/', views.OrganizationUpdateView.as_view(), name='organization-edit'),
+    path('organizations/<int:pk>/delete/', views.OrganizationDeleteView.as_view(), name='organization-delete'),
+    
+    # Orgmember URLs
     path('orgmembers/', views.OrgmemberListView.as_view(), name='orgmember-list'),
+    path('orgmembers/add/', views.OrgmemberCreateView.as_view(), name='orgmember-add'),
+    path('orgmembers/<int:pk>/', views.OrgmemberUpdateView.as_view(), name='orgmember-edit'),
+    path('orgmembers/<int:pk>/delete/', views.OrgmemberDeleteView.as_view(), name='orgmember-delete'),
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
