@@ -11,6 +11,7 @@ from .models import College, Program, Student, Organization, Orgmembers
 from collections import defaultdict
 import json
 from django.core.serializers.json import DjangoJSONEncoder
+from django.db import connection
 
 def logout_view(request):
     logout(request)
@@ -24,117 +25,203 @@ def handler404(request, exception):
 
 @login_required
 def home(request):
-    # Get program statistics with student counts
-    program_stats = Program.objects.annotate(
-        student_count=Count('student')
-    ).values('program_name', 'student_count').order_by('-student_count')[:5]
+    with connection.cursor() as cursor:
+        # Get totals in a single query
+        cursor.execute("""
+            SELECT 
+                (SELECT COUNT(*) FROM projectsite_organization) as total_organizations,
+                (SELECT COUNT(*) FROM projectsite_student) as total_students,
+                (SELECT COUNT(*) FROM projectsite_program) as total_programs,
+                (SELECT COUNT(*) FROM projectsite_college) as total_colleges
+        """)
+        totals = cursor.fetchone()
+        total_organizations, total_students, total_programs, total_colleges = totals
 
-    # Get organization membership growth over time
-    org_members = Orgmembers.objects.all()
-    growth_dict = defaultdict(int)
-    for member in org_members:
-        key = f"{member.date_joined.year}-{member.date_joined.month}"
-        growth_dict[key] += 1
-    
-    org_growth = [
-        {'year': int(k.split('-')[0]), 
-         'month': int(k.split('-')[1]), 
-         'member_count': v}
-        for k, v in sorted(growth_dict.items())
-    ]
+        # Get program statistics efficiently
+        cursor.execute("""
+            SELECT 
+                p.program_name,
+                COUNT(s.id) as student_count
+            FROM projectsite_program p
+            LEFT JOIN projectsite_student s ON s.program_id = p.id
+            GROUP BY p.id, p.program_name
+            ORDER BY student_count DESC
+            LIMIT 5
+        """)
+        program_stats = [
+            {'program_name': row[0], 'student_count': row[1]}
+            for row in cursor.fetchall()
+        ]
 
-    # Get college distribution
-    college_distribution = College.objects.annotate(
-        student_count=Count('program__student', distinct=True),
-        org_count=Count('organization', distinct=True)
-    ).values('college_name', 'student_count', 'org_count')
+        # Get organization growth by month efficiently
+        cursor.execute("""
+            SELECT 
+                strftime('%Y', date_joined) as year,
+                strftime('%m', date_joined) as month,
+                COUNT(*) as member_count
+            FROM projectsite_orgmembers
+            GROUP BY year, month
+            ORDER BY year, month
+        """)
+        org_growth = [
+            {'year': int(row[0]), 'month': int(row[1]), 'member_count': row[2]}
+            for row in cursor.fetchall()
+        ]
 
-    # Get monthly student registrations
-    students = Student.objects.all()
-    reg_dict = defaultdict(int)
-    for student in students:
-        key = f"{student.created_at.year}-{student.created_at.month}"
-        reg_dict[key] += 1
-    
-    student_registrations = [
-        {'year': int(k.split('-')[0]), 
-         'month': int(k.split('-')[1]), 
-         'count': v}
-        for k, v in sorted(reg_dict.items())
-    ]
+        # Get college distribution with a single query
+        cursor.execute("""
+            SELECT 
+                c.college_name,
+                COUNT(DISTINCT s.id) as student_count,
+                COUNT(DISTINCT o.id) as org_count
+            FROM projectsite_college c
+            LEFT JOIN projectsite_program p ON p.college_id = c.id
+            LEFT JOIN projectsite_student s ON s.program_id = p.id
+            LEFT JOIN projectsite_organization o ON o.college_id = c.id
+            GROUP BY c.id, c.college_name
+        """)
+        college_distribution = [
+            {
+                'college_name': row[0],
+                'student_count': row[1],
+                'org_count': row[2]
+            }
+            for row in cursor.fetchall()
+        ]
 
-    # Organization member distribution
-    org_member_dist = Organization.objects.annotate(
-        member_count=Count('orgmembers')
-    ).values('name', 'member_count').order_by('-member_count')[:8]
+        # Get student registrations by month
+        cursor.execute("""
+            SELECT 
+                strftime('%Y', created_at) as year,
+                strftime('%m', created_at) as month,
+                COUNT(*) as count
+            FROM projectsite_student
+            GROUP BY year, month
+            ORDER BY year, month
+        """)
+        student_registrations = [
+            {'year': int(row[0]), 'month': int(row[1]), 'count': row[2]}
+            for row in cursor.fetchall()
+        ]
+
+        # Get organization member distribution
+        cursor.execute("""
+            SELECT 
+                o.name,
+                COUNT(om.id) as member_count
+            FROM projectsite_organization o
+            LEFT JOIN projectsite_orgmembers om ON om.organization_id = o.id
+            GROUP BY o.id, o.name
+            ORDER BY member_count DESC
+            LIMIT 8
+        """)
+        org_member_dist = [
+            {'name': row[0], 'member_count': row[1]}
+            for row in cursor.fetchall()
+        ]
 
     context = {
-        'total_organizations': Organization.objects.count(),
-        'total_students': Student.objects.count(),
-        'total_programs': Program.objects.count(),
-        'total_colleges': College.objects.count(),
-        'program_stats': list(program_stats),
+        'total_organizations': total_organizations,
+        'total_students': total_students,
+        'total_programs': total_programs,
+        'total_colleges': total_colleges,
+        'program_stats': program_stats,
         'org_growth': org_growth,
-        'college_distribution': list(college_distribution),
+        'college_distribution': college_distribution,
         'student_registrations': student_registrations,
-        'org_member_dist': list(org_member_dist),
+        'org_member_dist': org_member_dist,
     }
     return render(request, 'home.html', context)
 
 @login_required
 def dashboard(request):
-    # Total counts for summary cards
-    total_students = Student.objects.count()
-    total_orgs = Organization.objects.count()
-    total_members = Orgmembers.objects.count()
-    total_programs = Program.objects.count()
+    # Use raw SQL for complex aggregations
+    with connection.cursor() as cursor:
+        # Get totals in a single query
+        cursor.execute("""
+            SELECT 
+                (SELECT COUNT(*) FROM projectsite_student) as total_students,
+                (SELECT COUNT(*) FROM projectsite_organization) as total_orgs,
+                (SELECT COUNT(*) FROM projectsite_orgmembers) as total_members,
+                (SELECT COUNT(*) FROM projectsite_program) as total_programs
+        """)
+        totals = cursor.fetchone()
+        total_students, total_orgs, total_members, total_programs = totals
 
-    # Monthly student registrations
-    students = Student.objects.all()
-    reg_dict = defaultdict(int)
-    for student in students:
-        if student.created_at:
-            key = student.created_at.strftime('%Y-%m')
-            reg_dict[key] += 1
-    
-    formatted_registrations = [
-        {
-            'month': key,
-            'count': value
-        }
-        for key, value in sorted(reg_dict.items())
-    ]
+        # Get monthly registrations using efficient date extraction
+        cursor.execute("""
+            SELECT 
+                strftime('%Y-%m', created_at) as month,
+                COUNT(*) as count
+            FROM projectsite_student
+            GROUP BY strftime('%Y-%m', created_at)
+            ORDER BY month
+        """)
+        formatted_registrations = [
+            {'month': row[0], 'count': row[1]}
+            for row in cursor.fetchall()
+        ]
 
-    # College-wise student distribution
-    college_stats = list(College.objects.annotate(
-        student_count=Count('program__student', distinct=True)
-    ).values('college_name', 'student_count'))
+        # College-wise student distribution with a single JOIN
+        cursor.execute("""
+            SELECT 
+                c.college_name,
+                COUNT(DISTINCT s.id) as student_count
+            FROM projectsite_college c
+            LEFT JOIN projectsite_program p ON p.college_id = c.id
+            LEFT JOIN projectsite_student s ON s.program_id = p.id
+            GROUP BY c.id, c.college_name
+        """)
+        college_stats = [
+            {'college_name': row[0], 'student_count': row[1]}
+            for row in cursor.fetchall()
+        ]
 
-    # Program popularity
-    program_stats = list(Program.objects.annotate(
-        student_count=Count('student')
-    ).values('program_name', 'student_count').order_by('-student_count')[:5])
+        # Program popularity with efficient counting
+        cursor.execute("""
+            SELECT 
+                p.program_name,
+                COUNT(s.id) as student_count
+            FROM projectsite_program p
+            LEFT JOIN projectsite_student s ON s.program_id = p.id
+            GROUP BY p.id, p.program_name
+            ORDER BY student_count DESC
+            LIMIT 5
+        """)
+        program_stats = [
+            {'program_name': row[0], 'student_count': row[1]}
+            for row in cursor.fetchall()
+        ]
 
-    # Organization membership trends
-    org_trends = list(Organization.objects.annotate(
-        member_count=Count('orgmembers')
-    ).values('name', 'member_count').order_by('-member_count')[:5])
+        # Organization membership trends
+        cursor.execute("""
+            SELECT 
+                o.name,
+                COUNT(om.id) as member_count
+            FROM projectsite_organization o
+            LEFT JOIN projectsite_orgmembers om ON om.organization_id = o.id
+            GROUP BY o.id, o.name
+            ORDER BY member_count DESC
+            LIMIT 5
+        """)
+        org_trends = [
+            {'name': row[0], 'member_count': row[1]}
+            for row in cursor.fetchall()
+        ]
 
-    # Monthly organization growth
-    org_members = Orgmembers.objects.all()
-    growth_dict = defaultdict(int)
-    for member in org_members:
-        if member.date_joined:
-            key = member.date_joined.strftime('%Y-%m')
-            growth_dict[key] += 1
-    
-    formatted_org_growth = [
-        {
-            'month': key,
-            'count': value
-        }
-        for key, value in sorted(growth_dict.items())
-    ]
+        # Monthly organization growth
+        cursor.execute("""
+            SELECT 
+                strftime('%Y-%m', date_joined) as month,
+                COUNT(*) as count
+            FROM projectsite_orgmembers
+            GROUP BY strftime('%Y-%m', date_joined)
+            ORDER BY month
+        """)
+        formatted_org_growth = [
+            {'month': row[0], 'count': row[1]}
+            for row in cursor.fetchall()
+        ]
 
     context = {
         'total_students': total_students,
@@ -155,11 +242,21 @@ class StudentListView(ListView):
     context_object_name = 'students'
     paginate_by = 10
 
+    def get_queryset(self):
+        return Student.objects.select_related('program', 'program__college').all()
+
 class ProgramListView(ListView):
     model = Program
     template_name = 'program_list.html'
     context_object_name = 'programs'
     paginate_by = 10
+
+    def get_queryset(self):
+        return Program.objects.select_related('college').prefetch_related(
+            'student_set'
+        ).annotate(
+            student_count=Count('student')
+        ).all()
 
 class CollegeListView(ListView):
     model = College
@@ -167,17 +264,40 @@ class CollegeListView(ListView):
     context_object_name = 'colleges'
     paginate_by = 10
 
+    def get_queryset(self):
+        return College.objects.prefetch_related(
+            'program_set',
+            'organization_set'
+        ).annotate(
+            program_count=Count('program', distinct=True),
+            student_count=Count('program__student', distinct=True)
+        ).all()
+
 class OrganizationListView(ListView):
     model = Organization
     template_name = 'org_list.html'
     context_object_name = 'organizations'
     paginate_by = 10
 
+    def get_queryset(self):
+        return Organization.objects.select_related('college').prefetch_related(
+            'orgmembers_set'
+        ).annotate(
+            member_count=Count('orgmembers')
+        ).all()
+
 class OrgmemberListView(ListView):
     model = Orgmembers
     template_name = 'orgmem_list.html'
     context_object_name = 'orgmembers'
     paginate_by = 10
+
+    def get_queryset(self):
+        return Orgmembers.objects.select_related(
+            'student',
+            'organization',
+            'organization__college'
+        ).all()
 
 class StudentCreateView(LoginRequiredMixin, CreateView):
     model = Student
