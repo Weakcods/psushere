@@ -4,8 +4,15 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.generic import ListView, CreateView, UpdateView, DeleteView
 from django.urls import reverse_lazy
 from django.db.models import Count
+from django.template import RequestContext
 from .models import College, Program, Student, Organization, Orgmembers
 from collections import defaultdict
+
+def handler404(request, exception):
+    context = {}
+    response = render(request, "404.html", context)
+    response.status_code = 404
+    return response
 
 @login_required
 def home(request):

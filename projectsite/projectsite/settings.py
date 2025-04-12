@@ -24,7 +24,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-un%e0x7%_01$heigc#c13*k0vmkks+4^(m52i1^u&$o=y&^@&f'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True  # Temporarily set to True for local development
+DEBUG = False  # Set to False to enable 404 handling
 
 ALLOWED_HOSTS = ['joshettt.pythonanywhere.com', 'joshuawa.pythonanywhere.com', '127.0.0.1', 'localhost']
 
@@ -139,6 +139,7 @@ if not DEBUG:
 # Authentication settings
 LOGIN_REDIRECT_URL = 'home'
 LOGIN_URL = 'login'
+LOGOUT_REDIRECT_URL = 'login'
 
 # Default primary key field type
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'

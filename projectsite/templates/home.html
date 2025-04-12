@@ -3,9 +3,17 @@
 {% block content %}
 <div class="content">
     <div class="container-fluid">
-        <h4 class="page-title">Dashboard</h4>
-        
-        <!-- Statistics Cards -->
+        <div class="page-header">
+            <h4 class="page-title">Dashboard</h4>
+            <div class="btn-group btn-group-page-header ml-auto">
+                <button type="button" class="btn btn-light btn-round btn-page-header-dropdown dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                    <i class="la la-calendar"></i>
+                    <span class="d-none d-md-inline">Last 30 Days</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Statistics Cards Row -->
         <div class="row">
             <div class="col-md-3">
                 <div class="card card-stats card-warning">
@@ -89,21 +97,31 @@
         <div class="row">
             <div class="col-md-6">
                 <div class="card">
-                    <div class="card-header">
+                    <div class="card-header d-flex align-items-center">
                         <h4 class="card-title">College Distribution</h4>
+                        <div class="card-category ml-auto">
+                            <span class="text-muted">Students & Organizations by College</span>
+                        </div>
                     </div>
                     <div class="card-body">
-                        <canvas id="collegeRadarChart"></canvas>
+                        <div class="chart-container">
+                            <canvas id="collegeRadarChart"></canvas>
+                        </div>
                     </div>
                 </div>
             </div>
             <div class="col-md-6">
                 <div class="card">
-                    <div class="card-header">
-                        <h4 class="card-title">Top Programs by Enrollment</h4>
+                    <div class="card-header d-flex align-items-center">
+                        <h4 class="card-title">Top Programs</h4>
+                        <div class="card-category ml-auto">
+                            <span class="text-muted">Enrollment Distribution</span>
+                        </div>
                     </div>
                     <div class="card-body">
-                        <canvas id="programBubbleChart"></canvas>
+                        <div class="chart-container">
+                            <canvas id="programBubbleChart"></canvas>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -113,21 +131,31 @@
         <div class="row">
             <div class="col-md-8">
                 <div class="card">
-                    <div class="card-header">
-                        <h4 class="card-title">Organization Membership Growth</h4>
+                    <div class="card-header d-flex align-items-center">
+                        <h4 class="card-title">Organization Growth</h4>
+                        <div class="card-category ml-auto">
+                            <span class="text-muted">Monthly Membership Trends</span>
+                        </div>
                     </div>
                     <div class="card-body">
-                        <canvas id="orgGrowthChart"></canvas>
+                        <div class="chart-container">
+                            <canvas id="orgGrowthChart"></canvas>
+                        </div>
                     </div>
                 </div>
             </div>
             <div class="col-md-4">
                 <div class="card">
-                    <div class="card-header">
-                        <h4 class="card-title">Organization Member Distribution</h4>
+                    <div class="card-header d-flex align-items-center">
+                        <h4 class="card-title">Organization Members</h4>
+                        <div class="card-category ml-auto">
+                            <span class="text-muted">Distribution</span>
+                        </div>
                     </div>
                     <div class="card-body">
-                        <canvas id="orgMemberDonutChart"></canvas>
+                        <div class="chart-container">
+                            <canvas id="orgMemberDonutChart"></canvas>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -137,11 +165,16 @@
         <div class="row">
             <div class="col-md-12">
                 <div class="card">
-                    <div class="card-header">
-                        <h4 class="card-title">Monthly Student Registrations</h4>
+                    <div class="card-header d-flex align-items-center">
+                        <h4 class="card-title">Student Registration Trends</h4>
+                        <div class="card-category ml-auto">
+                            <span class="text-muted">Monthly Registration Activity</span>
+                        </div>
                     </div>
                     <div class="card-body">
-                        <canvas id="studentRegChart"></canvas>
+                        <div class="chart-container">
+                            <canvas id="studentRegChart"></canvas>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -160,6 +193,33 @@ const orgGrowthData = {{ org_growth|safe }};
 const studentRegData = {{ student_registrations|safe }};
 const orgMemberData = {{ org_member_dist|safe }};
 
+// Chart configurations with improved styling
+const defaultOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+        legend: {
+            position: 'bottom',
+            labels: {
+                padding: 20,
+                font: {
+                    size: 12
+                }
+            }
+        },
+        tooltip: {
+            backgroundColor: 'rgba(0,0,0,0.8)',
+            titleFont: {
+                size: 13
+            },
+            bodyFont: {
+                size: 12
+            },
+            padding: 12
+        }
+    }
+};
+
 // College Radar Chart
 const collegeCtx = document.getElementById('collegeRadarChart').getContext('2d');
 new Chart(collegeCtx, {
@@ -170,24 +230,30 @@ new Chart(collegeCtx, {
             label: 'Students',
             data: collegeData.map(c => c.student_count),
             borderColor: 'rgba(75, 192, 192, 0.8)',
-            backgroundColor: 'rgba(75, 192, 192, 0.2)'
+            backgroundColor: 'rgba(75, 192, 192, 0.2)',
+            pointBackgroundColor: 'rgba(75, 192, 192, 1)'
         }, {
             label: 'Organizations',
             data: collegeData.map(c => c.org_count),
             borderColor: 'rgba(255, 99, 132, 0.8)',
-            backgroundColor: 'rgba(255, 99, 132, 0.2)'
+            backgroundColor: 'rgba(255, 99, 132, 0.2)',
+            pointBackgroundColor: 'rgba(255, 99, 132, 1)'
         }]
     },
     options: {
+        ...defaultOptions,
         scales: {
             r: {
-                beginAtZero: true
+                beginAtZero: true,
+                ticks: {
+                    stepSize: 1
+                }
             }
         }
     }
 });
 
-// Program Bubble Chart
+// Program Bubble Chart with improved visuals
 const programCtx = document.getElementById('programBubbleChart').getContext('2d');
 new Chart(programCtx, {
     type: 'bubble',
@@ -197,20 +263,28 @@ new Chart(programCtx, {
             data: programData.map((p, index) => ({
                 x: index,
                 y: p.student_count,
-                r: p.student_count / 2
+                r: Math.max(p.student_count / 3, 5)
             })),
             backgroundColor: programData.map(() => 
-                `rgba(${Math.random() * 255},${Math.random() * 255},${Math.random() * 255},0.6)`
+                `hsla(${Math.random() * 360}, 70%, 60%, 0.7)`
             )
         }]
     },
     options: {
+        ...defaultOptions,
         scales: {
             x: {
                 ticks: {
                     callback: function(value) {
                         return programData[value]?.program_name;
                     }
+                }
+            },
+            y: {
+                beginAtZero: true,
+                title: {
+                    display: true,
+                    text: 'Number of Students'
                 }
             }
         }
@@ -227,13 +301,20 @@ new Chart(orgGrowthCtx, {
             label: 'New Members',
             data: orgGrowthData.map(d => d.member_count),
             borderColor: 'rgba(54, 162, 235, 1)',
-            tension: 0.4
+            backgroundColor: 'rgba(54, 162, 235, 0.1)',
+            tension: 0.4,
+            fill: true
         }]
     },
     options: {
+        ...defaultOptions,
         scales: {
             y: {
-                beginAtZero: true
+                beginAtZero: true,
+                title: {
+                    display: true,
+                    text: 'Number of New Members'
+                }
             }
         }
     }
@@ -247,15 +328,20 @@ new Chart(orgMemberCtx, {
         labels: orgMemberData.map(o => o.name),
         datasets: [{
             data: orgMemberData.map(o => o.member_count),
-            backgroundColor: orgMemberData.map(() => 
-                `rgba(${Math.random() * 255},${Math.random() * 255},${Math.random() * 255},0.6)`
+            backgroundColor: orgMemberData.map((_, index) => 
+                `hsla(${(index * 360) / orgMemberData.length}, 70%, 60%, 0.8)`
             )
         }]
     },
     options: {
+        ...defaultOptions,
+        cutout: '60%',
         plugins: {
             legend: {
-                position: 'right'
+                position: 'right',
+                labels: {
+                    boxWidth: 12
+                }
             }
         }
     }
@@ -276,9 +362,14 @@ new Chart(studentRegCtx, {
         }]
     },
     options: {
+        ...defaultOptions,
         scales: {
             y: {
-                beginAtZero: true
+                beginAtZero: true,
+                title: {
+                    display: true,
+                    text: 'Number of Registrations'
+                }
             }
         }
     }

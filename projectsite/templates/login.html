@@ -1,121 +1,102 @@
-{% load static %}
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
-    <title>PSUSphere - Login</title>
-    <link rel="stylesheet" href="{% static 'css/bootstrap.min.css' %}" />
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Nunito:200,200i,300,300i,400,400i,600,600i,700,700i,800,800i,900,900i" />
-    <link rel="stylesheet" href="{% static 'css/ready.css' %}" />
-    <link rel="stylesheet" href="{% static 'css/demo.css' %}" />
-    <style>
-        body {
-            background: #f8f9fa;
-            height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        .login-container {
-            background: white;
-            border-radius: 10px;
-            box-shadow: 0 0 20px rgba(0,0,0,0.1);
-            padding: 40px;
-            width: 100%;
-            max-width: 400px;
-        }
-        .login-logo {
-            width: 120px;
-            height: 120px;
-            margin-bottom: 25px;
-            border-radius: 50%;
-            box-shadow: 0 0 10px rgba(0,0,0,0.1);
-        }
-        .form-control {
-            border-radius: 5px;
-            padding: 12px;
-            margin-bottom: 15px;
-            border: 1px solid #ddd;
-        }
-        .btn-login {
-            background: #1572e8;
-            border: none;
-            padding: 12px;
-            margin-top: 10px;
-            font-weight: 600;
-            transition: all 0.3s;
-        }
-        .btn-login:hover {
-            background: #1164d6;
-            transform: translateY(-1px);
-        }
-        .error-message {
-            background: #ffe6e6;
-            border: 1px solid #ffcccc;
-            color: #cc0000;
-            padding: 10px;
-            border-radius: 5px;
-            margin-bottom: 15px;
-        }
-    </style>
-</head>
-<body>
-    <div class="login-container">
-        <form method="post" class="text-center">
-            {% csrf_token %}
-            <img class="login-logo" src="{% static 'img/profile.jpg' %}" alt="PSUSphere Logo" />
-            <h2 class="mb-4">Welcome to PSUSphere</h2>
-            <p class="text-muted mb-4">Please sign in to continue</p>
+{% extends 'base.html' %}
+{% load widget_tweaks %}
 
-            {% if form.non_field_errors %}
-            <div class="error-message">
-                {% for error in form.non_field_errors %}
-                    <p class="mb-0">{{ error }}</p>
-                {% endfor %}
-            </div>
-            {% endif %}
-
-            <div class="input-group mb-3">
-                <div class="input-group-prepend">
-                    <span class="input-group-text">
-                        <i class="la la-user"></i>
-                    </span>
+{% block content %}
+<div class="content">
+    <div class="container">
+        <div class="row justify-content-center" style="margin-top: 100px;">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header text-center">
+                        <h3 class="card-title">Welcome to PSUSphere</h3>
+                        <p class="text-muted">Sign in to access your dashboard</p>
+                    </div>
+                    <div class="card-body">
+                        {% if request.GET.next == '/logout/' %}
+                            <div class="alert alert-success mb-4">
+                                You have been successfully logged out. Thank you for using PSUSphere!
+                            </div>
+                        {% endif %}
+                        
+                        <form method="post" class="login-form">
+                            {% csrf_token %}
+                            {% if form.errors %}
+                                <div class="alert alert-danger">
+                                    Your username or password is incorrect. Please try again.
+                                </div>
+                            {% endif %}
+                            
+                            <div class="form-group">
+                                <label for="id_username" class="form-label">Username</label>
+                                {% render_field form.username class="form-control" placeholder="Enter your username" %}
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="id_password" class="form-label">Password</label>
+                                {% render_field form.password class="form-control" placeholder="Enter your password" %}
+                            </div>
+                            
+                            <div class="form-group">
+                                <button type="submit" class="btn btn-primary btn-block btn-lg">
+                                    Sign In
+                                </button>
+                            </div>
+                        </form>
+                    </div>
                 </div>
-                <input type="text" name="username" class="form-control" placeholder="Username" required autofocus />
             </div>
-
-            <div class="input-group mb-3">
-                <div class="input-group-prepend">
-                    <span class="input-group-text">
-                        <i class="la la-lock"></i>
-                    </span>
-                </div>
-                <input type="password" name="password" class="form-control" placeholder="Password" required />
-            </div>
-
-            <button class="btn btn-primary btn-login btn-block" type="submit">
-                Sign in
-            </button>
-
-            <div class="mt-4">
-                <p class="text-muted mb-0">&copy; {% now "Y" %} PSUSphere. All rights reserved.</p>
-            </div>
-        </form>
+        </div>
     </div>
+</div>
 
-    <script src="{% static 'js/core/jquery.3.2.1.min.js' %}"></script>
-    <script src="{% static 'js/plugin/jquery-ui-1.12.1.custom/jquery-ui.min.js' %}"></script>
-    <script src="{% static 'js/core/popper/min/js' %}"></script>
-    <script src="{% static 'js/core/bootstrap.min.js' %}"></script>
-    <script src="{% static 'js/plugin/chartist/chartist.min.js' %}"></script>
-    <script src="{% static 'js/plugin/chartist/plugin/chartist-plugin-tooltip.min.js' %}"></script>
-    <script src="{% static 'js/plugin/bootstrap-notify/bootstrap-notify.min.js' %}"></script>
-    <script src="{% static 'js/plugin/bootstrap-toggle/bootstrap-toggle.min.js' %}"></script>
-    <script src="{% static 'js/plugin/jquery-mapael/jquery.mapael.min.js' %}"></script>
-    <script src="{% static 'js/plugin/jquery-mapael/maps/world_countries.min.js' %}"></script>
-    <script src="{% static 'js/plugin/chart-circle/circles.min.js' %}"></script>
-    <script src="{% static 'js/plugin/jquery-scrollbar/jquery.scrollbar.min.js' %}"></script>
-    <script src="{% static 'js/ready.min.js' %}"></script>
-</body>
-</html>
+<style>
+    .login-form {
+        padding: 20px;
+    }
+    .card {
+        border: none;
+        box-shadow: 0 0 20px rgba(0,0,0,0.1);
+        border-radius: 10px;
+    }
+    .card-header {
+        background: linear-gradient(45deg, #1a237e, #283593);
+        color: white;
+        border-radius: 10px 10px 0 0 !important;
+        padding: 30px !important;
+    }
+    .card-title {
+        margin-bottom: 10px;
+        font-weight: 600;
+    }
+    .form-label {
+        font-weight: 500;
+        color: #444;
+    }
+    .form-control {
+        padding: 12px;
+        border-radius: 6px;
+        border: 1px solid #ddd;
+        transition: all 0.3s;
+    }
+    .form-control:focus {
+        border-color: #1a237e;
+        box-shadow: 0 0 0 0.2rem rgba(26,35,126,0.25);
+    }
+    .btn-primary {
+        background: #1a237e;
+        border: none;
+        padding: 12px;
+        font-weight: 600;
+        letter-spacing: 0.5px;
+        transition: all 0.3s;
+    }
+    .btn-primary:hover {
+        background: #283593;
+        transform: translateY(-2px);
+    }
+    .alert {
+        border-radius: 6px;
+        padding: 15px;
+    }
+</style>
+{% endblock %}
