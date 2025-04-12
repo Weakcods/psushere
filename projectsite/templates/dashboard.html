@@ -1,0 +1,318 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="content">
+    <div class="container-fluid">
+        <h4 class="page-title">Analytics Dashboard</h4>
+        
+        <!-- Statistics Cards -->
+        <div class="row">
+            <div class="col-md-3">
+                <div class="card card-stats card-warning">
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-5">
+                                <div class="icon-big text-center">
+                                    <i class="la la-users"></i>
+                                </div>
+                            </div>
+                            <div class="col-7 d-flex align-items-center">
+                                <div class="numbers">
+                                    <p class="card-category">Total Students</p>
+                                    <h4 class="card-title">{{ total_students }}</h4>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card card-stats card-success">
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-5">
+                                <div class="icon-big text-center">
+                                    <i class="la la-building"></i>
+                                </div>
+                            </div>
+                            <div class="col-7 d-flex align-items-center">
+                                <div class="numbers">
+                                    <p class="card-category">Organizations</p>
+                                    <h4 class="card-title">{{ total_orgs }}</h4>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card card-stats card-danger">
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-5">
+                                <div class="icon-big text-center">
+                                    <i class="la la-group"></i>
+                                </div>
+                            </div>
+                            <div class="col-7 d-flex align-items-center">
+                                <div class="numbers">
+                                    <p class="card-category">Members</p>
+                                    <h4 class="card-title">{{ total_members }}</h4>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card card-stats card-primary">
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-5">
+                                <div class="icon-big text-center">
+                                    <i class="la la-book"></i>
+                                </div>
+                            </div>
+                            <div class="col-7 d-flex align-items-center">
+                                <div class="numbers">
+                                    <p class="card-category">Programs</p>
+                                    <h4 class="card-title">{{ total_programs }}</h4>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Charts -->
+        <div class="row">
+            <!-- Student Registration Trends -->
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h4 class="card-title">Student Registration Trends</h4>
+                        <p class="card-category">Monthly registration activity</p>
+                    </div>
+                    <div class="card-body">
+                        <canvas id="studentTrendsChart" style="height: 300px;"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- College Distribution -->
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h4 class="card-title">College Distribution</h4>
+                        <p class="card-category">Students per college</p>
+                    </div>
+                    <div class="card-body">
+                        <canvas id="collegeDistributionChart" style="height: 300px;"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <!-- Program Popularity -->
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h4 class="card-title">Top Programs</h4>
+                        <p class="card-category">Most popular programs by enrollment</p>
+                    </div>
+                    <div class="card-body">
+                        <canvas id="programPopularityChart" style="height: 300px;"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Organization Growth -->
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h4 class="card-title">Organization Growth</h4>
+                        <p class="card-category">Monthly membership trends</p>
+                    </div>
+                    <div class="card-body">
+                        <canvas id="orgGrowthChart" style="height: 300px;"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Organization Distribution -->
+        <div class="row">
+            <div class="col-md-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h4 class="card-title">Organization Membership Distribution</h4>
+                        <p class="card-category">Members per organization</p>
+                    </div>
+                    <div class="card-body">
+                        <canvas id="orgDistributionChart" style="height: 300px;"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Parse the JSON data safely with empty array fallbacks
+    const monthlyRegistrations = {{ monthly_registrations|default:'[]'|safe }};
+    const collegeStats = {{ college_stats|default:'[]'|safe }};
+    const programStats = {{ program_stats|default:'[]'|safe }};
+    const orgTrends = {{ org_trends|default:'[]'|safe }};
+    const monthlyOrgGrowth = {{ monthly_org_growth|default:'[]'|safe }};
+
+    // Helper function to format dates
+    function formatDate(dateStr) {
+        const [year, month] = dateStr.split('-');
+        const date = new Date(year, month - 1);
+        return date.toLocaleDateString('default', { month: 'short', year: 'numeric' });
+    }
+
+    // Student Registration Trends Chart
+    new Chart(document.getElementById('studentTrendsChart'), {
+        type: 'line',
+        data: {
+            labels: monthlyRegistrations.map(item => formatDate(item.month)),
+            datasets: [{
+                label: 'New Registrations',
+                data: monthlyRegistrations.map(item => item.count),
+                borderColor: '#2196f3',
+                backgroundColor: 'rgba(33, 150, 243, 0.1)',
+                fill: true,
+                tension: 0.4
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        precision: 0
+                    }
+                }
+            }
+        }
+    });
+
+    // College Distribution Chart
+    new Chart(document.getElementById('collegeDistributionChart'), {
+        type: 'pie',
+        data: {
+            labels: collegeStats.map(item => item.college_name),
+            datasets: [{
+                data: collegeStats.map(item => item.student_count),
+                backgroundColor: [
+                    '#2196f3', '#4caf50', '#ff9800', '#e91e63', '#9c27b0',
+                    '#00bcd4', '#795548', '#607d8b'
+                ]
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'right'
+                }
+            }
+        }
+    });
+
+    // Program Popularity Chart
+    new Chart(document.getElementById('programPopularityChart'), {
+        type: 'bar',
+        data: {
+            labels: programStats.map(item => item.program_name),
+            datasets: [{
+                label: 'Students Enrolled',
+                data: programStats.map(item => item.student_count),
+                backgroundColor: 'rgba(76, 175, 80, 0.6)',
+                borderColor: '#4caf50',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        precision: 0
+                    }
+                }
+            }
+        }
+    });
+
+    // Organization Growth Chart
+    new Chart(document.getElementById('orgGrowthChart'), {
+        type: 'line',
+        data: {
+            labels: monthlyOrgGrowth.map(item => formatDate(item.month)),
+            datasets: [{
+                label: 'New Members',
+                data: monthlyOrgGrowth.map(item => item.count),
+                borderColor: '#ff9800',
+                backgroundColor: 'rgba(255, 152, 0, 0.1)',
+                fill: true,
+                tension: 0.4
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        precision: 0
+                    }
+                }
+            }
+        }
+    });
+
+    // Organization Distribution Chart
+    new Chart(document.getElementById('orgDistributionChart'), {
+        type: 'bar',
+        data: {
+            labels: orgTrends.map(item => item.name),
+            datasets: [{
+                label: 'Number of Members',
+                data: orgTrends.map(item => item.member_count),
+                backgroundColor: 'rgba(233, 30, 99, 0.6)',
+                borderColor: '#e91e63',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            indexAxis: 'y',
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                x: {
+                    beginAtZero: true,
+                    ticks: {
+                        precision: 0
+                    }
+                }
+            }
+        }
+    });
+});
+</script>
+{% endblock %}

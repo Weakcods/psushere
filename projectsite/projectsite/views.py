@@ -5,9 +5,12 @@ from django.contrib.auth import logout
 from django.views.generic import ListView, CreateView, UpdateView, DeleteView
 from django.urls import reverse_lazy
 from django.db.models import Count
+from django.db.models.functions import TruncMonth
 from django.template import RequestContext
 from .models import College, Program, Student, Organization, Orgmembers
 from collections import defaultdict
+import json
+from django.core.serializers.json import DjangoJSONEncoder
 
 def logout_view(request):
     logout(request)
@@ -77,6 +80,74 @@ def home(request):
         'org_member_dist': list(org_member_dist),
     }
     return render(request, 'home.html', context)
+
+@login_required
+def dashboard(request):
+    # Total counts for summary cards
+    total_students = Student.objects.count()
+    total_orgs = Organization.objects.count()
+    total_members = Orgmembers.objects.count()
+    total_programs = Program.objects.count()
+
+    # Monthly student registrations
+    students = Student.objects.all()
+    reg_dict = defaultdict(int)
+    for student in students:
+        if student.created_at:
+            key = student.created_at.strftime('%Y-%m')
+            reg_dict[key] += 1
+    
+    formatted_registrations = [
+        {
+            'month': key,
+            'count': value
+        }
+        for key, value in sorted(reg_dict.items())
+    ]
+
+    # College-wise student distribution
+    college_stats = list(College.objects.annotate(
+        student_count=Count('program__student', distinct=True)
+    ).values('college_name', 'student_count'))
+
+    # Program popularity
+    program_stats = list(Program.objects.annotate(
+        student_count=Count('student')
+    ).values('program_name', 'student_count').order_by('-student_count')[:5])
+
+    # Organization membership trends
+    org_trends = list(Organization.objects.annotate(
+        member_count=Count('orgmembers')
+    ).values('name', 'member_count').order_by('-member_count')[:5])
+
+    # Monthly organization growth
+    org_members = Orgmembers.objects.all()
+    growth_dict = defaultdict(int)
+    for member in org_members:
+        if member.date_joined:
+            key = member.date_joined.strftime('%Y-%m')
+            growth_dict[key] += 1
+    
+    formatted_org_growth = [
+        {
+            'month': key,
+            'count': value
+        }
+        for key, value in sorted(growth_dict.items())
+    ]
+
+    context = {
+        'total_students': total_students,
+        'total_orgs': total_orgs,
+        'total_members': total_members,
+        'total_programs': total_programs,
+        'monthly_registrations': json.dumps(formatted_registrations),
+        'college_stats': json.dumps(college_stats),
+        'program_stats': json.dumps(program_stats),
+        'org_trends': json.dumps(org_trends),
+        'monthly_org_growth': json.dumps(formatted_org_growth)
+    }
+    return render(request, 'dashboard.html', context)
 
 class StudentListView(ListView):
     model = Student
