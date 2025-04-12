@@ -1,12 +1,17 @@
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib.auth import logout
 from django.views.generic import ListView, CreateView, UpdateView, DeleteView
 from django.urls import reverse_lazy
 from django.db.models import Count
 from django.template import RequestContext
 from .models import College, Program, Student, Organization, Orgmembers
 from collections import defaultdict
+
+def logout_view(request):
+    logout(request)
+    return redirect('login')
 
 def handler404(request, exception):
     context = {}
