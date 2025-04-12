@@ -5,23 +5,64 @@ from django.views.generic import ListView, CreateView, UpdateView, DeleteView
 from django.urls import reverse_lazy
 from django.db.models import Count
 from .models import College, Program, Student, Organization, Orgmembers
+from collections import defaultdict
 
 @login_required
 def home(request):
+    # Get program statistics with student counts
+    program_stats = Program.objects.annotate(
+        student_count=Count('student')
+    ).values('program_name', 'student_count').order_by('-student_count')[:5]
+
+    # Get organization membership growth over time
+    org_members = Orgmembers.objects.all()
+    growth_dict = defaultdict(int)
+    for member in org_members:
+        key = f"{member.date_joined.year}-{member.date_joined.month}"
+        growth_dict[key] += 1
+    
+    org_growth = [
+        {'year': int(k.split('-')[0]), 
+         'month': int(k.split('-')[1]), 
+         'member_count': v}
+        for k, v in sorted(growth_dict.items())
+    ]
+
+    # Get college distribution
+    college_distribution = College.objects.annotate(
+        student_count=Count('program__student', distinct=True),
+        org_count=Count('organization', distinct=True)
+    ).values('college_name', 'student_count', 'org_count')
+
+    # Get monthly student registrations
+    students = Student.objects.all()
+    reg_dict = defaultdict(int)
+    for student in students:
+        key = f"{student.created_at.year}-{student.created_at.month}"
+        reg_dict[key] += 1
+    
+    student_registrations = [
+        {'year': int(k.split('-')[0]), 
+         'month': int(k.split('-')[1]), 
+         'count': v}
+        for k, v in sorted(reg_dict.items())
+    ]
+
+    # Organization member distribution
+    org_member_dist = Organization.objects.annotate(
+        member_count=Count('orgmembers')
+    ).values('name', 'member_count').order_by('-member_count')[:8]
+
     context = {
         'total_organizations': Organization.objects.count(),
-        'total_orgmembers': Orgmembers.objects.count(),
         'total_students': Student.objects.count(),
-        'total_colleges': College.objects.count(),
         'total_programs': Program.objects.count(),
-        # Get top 15 for each category
-        'top_organizations': Organization.objects.annotate(
-            member_count=Count('orgmembers')).order_by('-member_count')[:15],
-        'top_programs': Program.objects.annotate(
-            student_count=Count('student')).order_by('-student_count')[:15],
-        'recent_students': Student.objects.order_by('-created_at')[:15],
-        'recent_colleges': College.objects.order_by('-created_at')[:15],
-        'recent_orgmembers': Orgmembers.objects.order_by('-created_at')[:15],
+        'total_colleges': College.objects.count(),
+        'program_stats': list(program_stats),
+        'org_growth': org_growth,
+        'college_distribution': list(college_distribution),
+        'student_registrations': student_registrations,
+        'org_member_dist': list(org_member_dist),
     }
     return render(request, 'home.html', context)
 

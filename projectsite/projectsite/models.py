@@ -1,4 +1,5 @@
 from django.db import models
+from django.utils import timezone
 
 class BaseModel(models.Model):
     created_at = models.DateTimeField(auto_now_add=True, db_index=True)
@@ -34,6 +35,7 @@ class Student(BaseModel):
     lastname = models.CharField(max_length=50)
     middlename = models.CharField(max_length=25, blank=True, null=True)
     program = models.ForeignKey(Program, on_delete=models.CASCADE)
+    created_at = models.DateTimeField(default=timezone.now)
 
     def __str__(self):
         return f"{self.firstname} {self.lastname}"
@@ -41,7 +43,7 @@ class Student(BaseModel):
 class Orgmembers(BaseModel):
     student = models.ForeignKey(Student, on_delete=models.CASCADE)
     organization = models.ForeignKey(Organization, on_delete=models.CASCADE)
-    date_joined = models.DateField()
+    date_joined = models.DateTimeField(default=timezone.now)
 
     def __str__(self):
         return f"{self.student} - {self.organization}"
